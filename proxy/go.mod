@@ -1,3 +1,3 @@
-module github.com/pixelmarmalade/mcp-sentinel-proxy
+module github.com/newmar1997ma-coder/mcp-sentinel/proxy
 
-go 1.21
+go 1.25
