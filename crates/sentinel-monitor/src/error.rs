@@ -38,4 +38,29 @@ pub enum MonitorError {
     /// Invalid node state encountered.
     #[error("invalid node state: {0}")]
     InvalidState(String),
+
+    /// Gas budget exhausted.
+    ///
+    /// Operation denied due to insufficient gas remaining.
+    /// This is a security-critical error indicating resource limits enforced.
+    #[error("gas exhausted: {operation} requires {required} gas, only {available} available")]
+    GasExhausted {
+        /// Gas units required for the operation
+        required: u64,
+        /// Gas units currently available
+        available: u64,
+        /// Description of the denied operation
+        operation: String,
+    },
+
+    /// Context capacity exceeded.
+    ///
+    /// Indicates context flush is required to continue execution.
+    #[error("context capacity exceeded: {current} frames exceeds limit of {limit}")]
+    ContextOverflow {
+        /// Current number of frames
+        current: usize,
+        /// Maximum allowed frames
+        limit: usize,
+    },
 }
