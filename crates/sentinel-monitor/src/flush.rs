@@ -369,13 +369,10 @@ impl ContextManager {
         self.timestamp += 1;
         let ts = self.timestamp;
 
-        self.frames
-            .iter_mut()
-            .find(|f| f.id == id)
-            .map(|f| {
-                f.accessed = ts;
-                &*f
-            })
+        self.frames.iter_mut().find(|f| f.id == id).map(|f| {
+            f.accessed = ts;
+            &*f
+        })
     }
 
     /// Gets a frame by ID without updating access time (peek).

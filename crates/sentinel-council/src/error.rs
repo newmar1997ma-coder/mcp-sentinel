@@ -35,10 +35,7 @@ mod tests {
 
     #[test]
     fn test_evaluator_failure_display() {
-        let err = CouncilError::EvaluatorFailure(
-            "Deontologist".to_string(),
-            "timeout".to_string(),
-        );
+        let err = CouncilError::EvaluatorFailure("Deontologist".to_string(), "timeout".to_string());
         assert!(err.to_string().contains("Deontologist"));
         assert!(err.to_string().contains("timeout"));
     }

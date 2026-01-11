@@ -127,8 +127,7 @@ impl Cycle {
     /// A cycle A -> B -> A has length 2 (two unique states).
     pub fn length(&self) -> usize {
         // Count unique state_ids
-        let unique: std::collections::HashSet<_> =
-            self.nodes.iter().map(|n| &n.state_id).collect();
+        let unique: std::collections::HashSet<_> = self.nodes.iter().map(|n| &n.state_id).collect();
         unique.len()
     }
 }
@@ -715,10 +714,7 @@ mod tests {
     /// Tests Cycle nodes accessor
     #[test]
     fn test_cycle_nodes_accessor() {
-        let nodes = vec![
-            ExecutionNode::new("x", 1),
-            ExecutionNode::new("y", 2),
-        ];
+        let nodes = vec![ExecutionNode::new("x", 1), ExecutionNode::new("y", 2)];
         let cycle = Cycle::new(nodes.clone(), 2);
 
         assert_eq!(cycle.nodes().len(), 2);

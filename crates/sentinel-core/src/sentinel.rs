@@ -12,7 +12,7 @@ use crate::{
 };
 
 use sentinel_council::{ActionProposal, CognitiveCouncil, CouncilVerdict};
-use sentinel_monitor::{StateMonitor, StateMonitorConfig, OperationType};
+use sentinel_monitor::{OperationType, StateMonitor, StateMonitorConfig};
 use sentinel_registry::{RegistryGuard, ToolSchema, VerifyResult};
 
 use tracing::{debug, info, warn};
@@ -81,7 +81,10 @@ impl Sentinel {
         let monitor = StateMonitor::with_config(monitor_config);
         let council = CognitiveCouncil::new();
 
-        info!("Sentinel initialized with {} gas limit", config.monitor.gas_limit);
+        info!(
+            "Sentinel initialized with {} gas limit",
+            config.monitor.gas_limit
+        );
 
         Ok(Self {
             config,
@@ -153,7 +156,10 @@ impl Sentinel {
                 Ok(None)
             }
             VerifyResult::Invalid { expected, actual } => {
-                warn!("Hash mismatch for '{}': expected {:?}, got {:?}", tool_name, expected, actual);
+                warn!(
+                    "Hash mismatch for '{}': expected {:?}, got {:?}",
+                    tool_name, expected, actual
+                );
                 Ok(Some(Verdict::block(BlockReason::HashMismatch {
                     tool_name: tool_name.to_string(),
                     expected: format!("{:?}", expected),
@@ -185,7 +191,11 @@ impl Sentinel {
         // Begin a new step - this consumes gas and checks for cycles
         match self.monitor.begin_step(tool_name, OperationType::ToolCall) {
             Ok(()) => {}
-            Err(sentinel_monitor::MonitorError::GasExhausted { required, available, .. }) => {
+            Err(sentinel_monitor::MonitorError::GasExhausted {
+                required,
+                available,
+                ..
+            }) => {
                 warn!("Gas exhausted: need {}, have {}", required, available);
                 return Ok(Some(Verdict::block(BlockReason::GasExhausted {
                     used: self.config.monitor.gas_limit - available,
@@ -237,11 +247,18 @@ impl Sentinel {
         let proposal = ActionProposal::new(tool_name, params.to_string());
 
         match self.council.evaluate(&proposal) {
-            CouncilVerdict::Approved { tally: _, waluigi_score: _ } => {
+            CouncilVerdict::Approved {
+                tally: _,
+                waluigi_score: _,
+            } => {
                 debug!("Council approved: {}", tool_name);
                 Ok(None)
             }
-            CouncilVerdict::Rejected { reason, tally, waluigi_score: _ } => {
+            CouncilVerdict::Rejected {
+                reason,
+                tally,
+                waluigi_score: _,
+            } => {
                 warn!("Council rejected '{}': {}", tool_name, reason);
                 Ok(Some(Verdict::block(BlockReason::CouncilRejected {
                     votes: format!("{:?}", tally),
@@ -356,7 +373,9 @@ mod tests {
 
         // Verify passes for registered tool
         let params = serde_json::json!({ "input": "test" });
-        let verdict = sentinel.analyze_tool_call("test_tool", &schema, &params).unwrap();
+        let verdict = sentinel
+            .analyze_tool_call("test_tool", &schema, &params)
+            .unwrap();
 
         // Should allow (or review for new tool depending on config)
         assert!(!verdict.is_blocked());
@@ -373,7 +392,9 @@ mod tests {
         let schema = test_schema();
         let params = serde_json::json!({});
 
-        let verdict = sentinel.analyze_tool_call("unknown_tool", &schema, &params).unwrap();
+        let verdict = sentinel
+            .analyze_tool_call("unknown_tool", &schema, &params)
+            .unwrap();
         assert!(verdict.is_blocked());
     }
 
@@ -398,7 +419,9 @@ mod tests {
         let params = serde_json::json!({});
 
         // First call should work
-        let verdict = sentinel.analyze_tool_call("test_tool", &schema, &params).unwrap();
+        let verdict = sentinel
+            .analyze_tool_call("test_tool", &schema, &params)
+            .unwrap();
         assert!(!verdict.is_blocked());
 
         // End the step

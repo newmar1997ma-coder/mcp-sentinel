@@ -541,7 +541,8 @@ impl SemanticFirewall {
             return ScanResult::Blocked {
                 threat: ThreatType::DataExfil,
                 confidence: 1.0,
-                detail: "Canary token detected in output - system prompt leak confirmed".to_string(),
+                detail: "Canary token detected in output - system prompt leak confirmed"
+                    .to_string(),
             };
         }
 
@@ -738,7 +739,10 @@ mod tests {
         let result = fw.scan_output(&leaked);
         assert!(result.is_blocked());
 
-        if let ScanResult::Blocked { threat, confidence, .. } = result {
+        if let ScanResult::Blocked {
+            threat, confidence, ..
+        } = result
+        {
             assert_eq!(threat, ThreatType::DataExfil);
             assert_eq!(confidence, 1.0);
         }

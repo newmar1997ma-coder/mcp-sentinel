@@ -316,15 +316,14 @@ mod tests {
 
     #[test]
     fn test_action_proposal_with_parameter() {
-        let proposal = ActionProposal::new("write", "/tmp/file.txt")
-            .with_parameter("--force");
+        let proposal = ActionProposal::new("write", "/tmp/file.txt").with_parameter("--force");
         assert_eq!(proposal.parameters.len(), 1);
     }
 
     #[test]
     fn test_action_proposal_with_response() {
-        let proposal = ActionProposal::new("execute", "script.sh")
-            .with_response("I'll help you run this.");
+        let proposal =
+            ActionProposal::new("execute", "script.sh").with_response("I'll help you run this.");
         assert!(proposal.response_content.is_some());
     }
 
@@ -440,7 +439,9 @@ mod tests {
         let proposal = ActionProposal::new("read", "/tmp/file.txt");
 
         let result = council.evaluate_with_check(&proposal, |_| {
-            Err(crate::error::CouncilError::InvalidProposal("Custom check failed".to_string()))
+            Err(crate::error::CouncilError::InvalidProposal(
+                "Custom check failed".to_string(),
+            ))
         });
         assert!(result.is_err());
     }
@@ -489,8 +490,7 @@ mod tests {
         }
 
         // Test 4: Command injection attempt
-        let injection = ActionProposal::new("run", "script.sh")
-            .with_parameter("arg; rm -rf /");
+        let injection = ActionProposal::new("run", "script.sh").with_parameter("arg; rm -rf /");
         assert!(council.evaluate(&injection).is_rejected());
     }
 
@@ -508,8 +508,7 @@ mod tests {
 
     #[test]
     fn test_action_proposal_serialization() {
-        let proposal = ActionProposal::new("test", "target")
-            .with_parameter("param");
+        let proposal = ActionProposal::new("test", "target").with_parameter("param");
 
         let json = serde_json::to_string(&proposal).unwrap();
         let deserialized: ActionProposal = serde_json::from_str(&json).unwrap();

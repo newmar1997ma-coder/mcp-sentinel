@@ -133,11 +133,22 @@ pub enum BlockReason {
 impl std::fmt::Display for BlockReason {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::SchemaDrift { tool_name, drift_level } => {
+            Self::SchemaDrift {
+                tool_name,
+                drift_level,
+            } => {
                 write!(f, "Schema drift on '{}': {}", tool_name, drift_level)
             }
-            Self::HashMismatch { tool_name, expected, actual } => {
-                write!(f, "Hash mismatch on '{}': expected {}, got {}", tool_name, expected, actual)
+            Self::HashMismatch {
+                tool_name,
+                expected,
+                actual,
+            } => {
+                write!(
+                    f,
+                    "Hash mismatch on '{}': expected {}, got {}",
+                    tool_name, expected, actual
+                )
             }
             Self::CycleDetected { cycle } => {
                 write!(f, "Cycle detected: {}", cycle)
@@ -234,7 +245,10 @@ mod tests {
 
     #[test]
     fn test_verdict_block() {
-        let verdict = Verdict::block(BlockReason::GasExhausted { used: 100, limit: 50 });
+        let verdict = Verdict::block(BlockReason::GasExhausted {
+            used: 100,
+            limit: 50,
+        });
         assert!(!verdict.is_allowed());
         assert!(verdict.is_blocked());
         assert!(!verdict.requires_review());
@@ -250,7 +264,9 @@ mod tests {
 
     #[test]
     fn test_block_reason_display() {
-        let reason = BlockReason::CycleDetected { cycle: "A -> B -> A".to_string() };
+        let reason = BlockReason::CycleDetected {
+            cycle: "A -> B -> A".to_string(),
+        };
         assert_eq!(reason.to_string(), "Cycle detected: A -> B -> A");
     }
 }

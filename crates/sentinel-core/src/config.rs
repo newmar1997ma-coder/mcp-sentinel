@@ -19,7 +19,6 @@ pub struct SentinelConfig {
     pub global: GlobalConfig,
 }
 
-
 /// Registry Guard configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RegistryConfig {

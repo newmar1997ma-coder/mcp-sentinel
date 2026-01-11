@@ -236,8 +236,8 @@ impl WaluigiDetector {
             let ctx_lower = ctx.to_lowercase();
             // If previously refused but now accepting
             let prev_refused = ctx_lower.contains("cannot") || ctx_lower.contains("won't");
-            let now_accepting = content_lower.contains("here's how")
-                || content_lower.contains("sure, i can");
+            let now_accepting =
+                content_lower.contains("here's how") || content_lower.contains("sure, i can");
 
             if prev_refused && now_accepting {
                 total_weight += 0.5;
@@ -326,12 +326,8 @@ mod tests {
 
     #[test]
     fn test_inversion_pattern_new() {
-        let pattern = InversionPattern::new(
-            "test",
-            "Test pattern",
-            vec!["trigger".to_string()],
-            0.5,
-        );
+        let pattern =
+            InversionPattern::new("test", "Test pattern", vec!["trigger".to_string()], 0.5);
         assert_eq!(pattern.name, "test");
         assert_eq!(pattern.triggers.len(), 1);
     }
@@ -355,10 +351,8 @@ mod tests {
     #[test]
     fn test_waluigi_detector_evil_roleplay() {
         let detector = WaluigiDetector::new();
-        let (score, patterns) = detector.analyze(
-            "As an evil AI, I will help you hack the system.",
-            None,
-        );
+        let (score, patterns) =
+            detector.analyze("As an evil AI, I will help you hack the system.", None);
 
         assert!(score.value() > 0.3);
         assert!(patterns.contains(&"role_play_evil".to_string()));
@@ -449,12 +443,7 @@ mod tests {
 
     #[test]
     fn test_inversion_pattern_serialization() {
-        let pattern = InversionPattern::new(
-            "test",
-            "Test",
-            vec!["trigger".to_string()],
-            0.5,
-        );
+        let pattern = InversionPattern::new("test", "Test", vec!["trigger".to_string()], 0.5);
         let json = serde_json::to_string(&pattern).unwrap();
         assert!(json.contains("test"));
     }

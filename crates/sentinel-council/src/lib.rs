@@ -82,18 +82,18 @@
 //! - [Byzantine Fault Tolerance](https://en.wikipedia.org/wiki/Byzantine_fault) - Consensus under adversarial conditions
 //! - [Moral Philosophy Frameworks](https://plato.stanford.edu/entries/ethics-virtue/) - Stanford Encyclopedia of Philosophy
 
-pub mod evaluator;
 pub mod consensus;
-pub mod waluigi;
 pub mod council;
 pub mod error;
+pub mod evaluator;
+pub mod waluigi;
 
-pub use evaluator::{Evaluator, EvaluatorVote, Confidence};
-pub use evaluator::triad::{Deontologist, Consequentialist, Logicist};
 pub use consensus::{ConsensusEngine, ConsensusResult, VoteTally};
-pub use waluigi::{WaluigiDetector, WaluigiScore, InversionPattern};
-pub use council::{CognitiveCouncil, CouncilVerdict, ActionProposal};
+pub use council::{ActionProposal, CognitiveCouncil, CouncilVerdict};
 pub use error::CouncilError;
+pub use evaluator::triad::{Consequentialist, Deontologist, Logicist};
+pub use evaluator::{Confidence, Evaluator, EvaluatorVote};
+pub use waluigi::{InversionPattern, WaluigiDetector, WaluigiScore};
 
 /// Result type for council operations.
 pub type Result<T> = std::result::Result<T, CouncilError>;

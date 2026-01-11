@@ -359,7 +359,9 @@ mod tests {
 
     #[test]
     fn test_detect_canary_pattern_case_insensitive() {
-        assert!(detect_canary_pattern_case_insensitive("the canary was found"));
+        assert!(detect_canary_pattern_case_insensitive(
+            "the canary was found"
+        ));
         assert!(detect_canary_pattern_case_insensitive("CANARY detected"));
         assert!(detect_canary_pattern_case_insensitive("Canary Token"));
         assert!(!detect_canary_pattern_case_insensitive("Clean output"));

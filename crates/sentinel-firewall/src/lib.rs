@@ -114,11 +114,11 @@
 //! }
 //! ```
 
-pub mod models;
-pub mod perplexity;
 pub mod canary;
 pub mod cdr;
 pub mod firewall;
+pub mod models;
+pub mod perplexity;
 
 pub use firewall::SemanticFirewall;
-pub use models::{ScanResult, ThreatType, SanitizeError};
+pub use models::{SanitizeError, ScanResult, ThreatType};

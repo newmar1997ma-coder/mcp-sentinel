@@ -612,7 +612,9 @@ mod tests {
     fn test_basic_step_execution() {
         let mut monitor = StateMonitor::new();
 
-        monitor.begin_step("step1", OperationType::StateRead).unwrap();
+        monitor
+            .begin_step("step1", OperationType::StateRead)
+            .unwrap();
         monitor.end_step("result1").unwrap();
 
         assert_eq!(monitor.step_count(), 1);
@@ -640,10 +642,14 @@ mod tests {
         let mut monitor = StateMonitor::new();
 
         // Create a cycle by repeating states
-        monitor.begin_step("state_a", OperationType::StateRead).unwrap();
+        monitor
+            .begin_step("state_a", OperationType::StateRead)
+            .unwrap();
         monitor.end_step("r").unwrap();
 
-        monitor.begin_step("state_b", OperationType::StateRead).unwrap();
+        monitor
+            .begin_step("state_b", OperationType::StateRead)
+            .unwrap();
         monitor.end_step("r").unwrap();
 
         // Repeat state_a - should trigger cycle detection
@@ -697,7 +703,9 @@ mod tests {
 
         // Add 8 frames (80% utilization, above 50% threshold)
         for i in 0..8 {
-            monitor.begin_step(&format!("s{}", i), OperationType::StateRead).unwrap();
+            monitor
+                .begin_step(&format!("s{}", i), OperationType::StateRead)
+                .unwrap();
             monitor.end_step("r").unwrap();
         }
 
@@ -710,7 +718,9 @@ mod tests {
         let mut monitor = StateMonitor::new();
 
         for i in 0..10 {
-            monitor.begin_step(&format!("s{}", i), OperationType::StateRead).unwrap();
+            monitor
+                .begin_step(&format!("s{}", i), OperationType::StateRead)
+                .unwrap();
             monitor.end_step("r").unwrap();
         }
 
@@ -805,7 +815,9 @@ mod tests {
 
         // Try to add many frames
         for i in 0..100 {
-            monitor.begin_step(&format!("s{}", i), OperationType::StateRead).unwrap();
+            monitor
+                .begin_step(&format!("s{}", i), OperationType::StateRead)
+                .unwrap();
             monitor.end_step("r").unwrap();
 
             // Context should never exceed capacity

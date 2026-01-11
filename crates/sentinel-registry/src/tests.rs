@@ -22,7 +22,12 @@ use serde_json::json;
 // Helper Functions
 // =============================================================================
 
-fn make_tool(name: &str, desc: &str, input: serde_json::Value, output: serde_json::Value) -> ToolSchema {
+fn make_tool(
+    name: &str,
+    desc: &str,
+    input: serde_json::Value,
+    output: serde_json::Value,
+) -> ToolSchema {
     ToolSchema {
         name: name.to_string(),
         description: desc.to_string(),
@@ -336,7 +341,10 @@ fn test_registry_detect_tampering() {
     // Drift analysis
     let report = registry.detect_drift(&tampered);
     assert!(report.level >= DriftLevel::Minor);
-    assert!(report.changes.iter().any(|c| c.contains("sudo") || c.contains("description")));
+    assert!(report
+        .changes
+        .iter()
+        .any(|c| c.contains("sudo") || c.contains("description")));
 }
 
 #[test]
@@ -502,7 +510,12 @@ fn test_scenario_gradual_drift() {
     registry.register_tool(&v1).unwrap();
 
     // Version 2: Small change
-    let v2 = make_tool("tool", "Process data safely", json!({"type": "object"}), json!({}));
+    let v2 = make_tool(
+        "tool",
+        "Process data safely",
+        json!({"type": "object"}),
+        json!({}),
+    );
 
     let report = registry.detect_drift(&v2);
     assert_eq!(report.level, DriftLevel::Minor);

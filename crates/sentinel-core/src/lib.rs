@@ -67,20 +67,20 @@
 //! - State Monitor: Floyd/Tarjan cycles + gas budgeting
 //! - Cognitive Council: Byzantine consensus + Waluigi detection
 
-mod error;
-mod verdict;
 mod config;
+mod error;
 mod sentinel;
+mod verdict;
 
-pub use error::SentinelError;
-pub use verdict::{Verdict, BlockReason, ReviewFlag};
 pub use config::SentinelConfig;
+pub use error::SentinelError;
 pub use sentinel::Sentinel;
+pub use verdict::{BlockReason, ReviewFlag, Verdict};
 
 // Re-export component types for convenience
-pub use sentinel_registry::{RegistryGuard, ToolSchema, VerifyResult, DriftLevel};
-pub use sentinel_monitor::{StateMonitor, StateMonitorConfig, MonitorStatus, OperationType};
-pub use sentinel_council::{CognitiveCouncil, CouncilVerdict, ActionProposal};
+pub use sentinel_council::{ActionProposal, CognitiveCouncil, CouncilVerdict};
+pub use sentinel_monitor::{MonitorStatus, OperationType, StateMonitor, StateMonitorConfig};
+pub use sentinel_registry::{DriftLevel, RegistryGuard, ToolSchema, VerifyResult};
 
 /// Core result type for sentinel operations.
 pub type Result<T> = std::result::Result<T, SentinelError>;

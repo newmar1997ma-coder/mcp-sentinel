@@ -9,7 +9,7 @@
 //! 3. **Edge Cases**: Boundary conditions and unusual inputs
 //! 4. **Recovery**: System behavior after security events
 
-use sentinel_core::{Sentinel, SentinelConfig, Verdict, BlockReason};
+use sentinel_core::{BlockReason, Sentinel, SentinelConfig, Verdict};
 use sentinel_registry::ToolSchema;
 use tempfile::TempDir;
 
@@ -51,13 +51,22 @@ fn test_scenario_multiple_unknown_tools() {
     for tool_name in unknown_tools {
         let schema = safe_tool(tool_name);
         let params = serde_json::json!({});
-        let verdict = sentinel.analyze_tool_call(tool_name, &schema, &params).unwrap();
+        let verdict = sentinel
+            .analyze_tool_call(tool_name, &schema, &params)
+            .unwrap();
 
-        assert!(verdict.is_blocked(), "Unknown tool {} should be blocked", tool_name);
+        assert!(
+            verdict.is_blocked(),
+            "Unknown tool {} should be blocked",
+            tool_name
+        );
 
         if let Verdict::Block { reason } = verdict {
-            assert!(matches!(reason, BlockReason::UnknownTool { .. }),
-                    "Should be UnknownTool, got {:?}", reason);
+            assert!(
+                matches!(reason, BlockReason::UnknownTool { .. }),
+                "Should be UnknownTool, got {:?}",
+                reason
+            );
         }
     }
 }
@@ -100,7 +109,10 @@ fn test_scenario_rapid_fire_requests() {
 
     // Should have allowed some and blocked when gas ran out
     assert!(allowed > 0, "Should allow some requests");
-    assert!(blocked > 0 || allowed == 50, "Should either block or complete all");
+    assert!(
+        blocked > 0 || allowed == 50,
+        "Should either block or complete all"
+    );
 }
 
 #[test]
@@ -117,11 +129,15 @@ fn test_scenario_alternating_registered_unregistered() {
     let params = serde_json::json!({ "input": "test" });
 
     // Test unregistered tool is blocked
-    let verdict = sentinel.analyze_tool_call("other_tool", &unregistered, &params).unwrap();
+    let verdict = sentinel
+        .analyze_tool_call("other_tool", &unregistered, &params)
+        .unwrap();
     assert!(verdict.is_blocked(), "Unregistered tool should be blocked");
 
     // Test registered tool (Council may still block based on action)
-    let verdict = sentinel.analyze_tool_call("my_tool", &registered, &params).unwrap();
+    let verdict = sentinel
+        .analyze_tool_call("my_tool", &registered, &params)
+        .unwrap();
     // If Council blocks, that's still a valid security outcome
     if verdict.is_allowed() {
         sentinel.end_step("ok").unwrap();
@@ -155,11 +171,7 @@ fn test_false_positive_legitimate_file_paths() {
     sentinel.register_tool(&schema).unwrap();
 
     // Use innocuous key names
-    let legitimate_keys = vec![
-        "user-preferences",
-        "cache-data",
-        "session-123",
-    ];
+    let legitimate_keys = vec!["user-preferences", "cache-data", "session-123"];
 
     let mut processed = 0;
     for key in legitimate_keys {
@@ -196,11 +208,7 @@ fn test_false_positive_unicode_in_params() {
     sentinel.register_tool(&schema).unwrap();
 
     // Unicode params should not cause errors
-    let unicode_inputs = vec![
-        "test123",
-        "simple text",
-        "Emoji: \u{1F600}",
-    ];
+    let unicode_inputs = vec!["test123", "simple text", "Emoji: \u{1F600}"];
 
     let mut processed = 0;
     for input in unicode_inputs {
@@ -241,11 +249,15 @@ fn test_false_positive_large_params() {
     let large_input = "a".repeat(10000);
     let params = serde_json::json!({ "input": large_input });
 
-    let verdict = sentinel.analyze_tool_call("large_input_tool", &schema, &params).unwrap();
+    let verdict = sentinel
+        .analyze_tool_call("large_input_tool", &schema, &params)
+        .unwrap();
 
     // Large input should not be blocked by size alone
-    assert!(!verdict.is_blocked(),
-            "Large legitimate input should not be blocked");
+    assert!(
+        !verdict.is_blocked(),
+        "Large legitimate input should not be blocked"
+    );
 }
 
 // =============================================================================
@@ -265,7 +277,9 @@ fn test_edge_empty_params() {
 
     // Empty object params
     let params = serde_json::json!({});
-    let verdict = sentinel.analyze_tool_call("empty_params_tool", &schema, &params).unwrap();
+    let verdict = sentinel
+        .analyze_tool_call("empty_params_tool", &schema, &params)
+        .unwrap();
 
     // Should handle gracefully
     assert!(!verdict.is_blocked() || verdict.is_blocked());
@@ -295,11 +309,15 @@ fn test_edge_nested_params() {
         }
     });
 
-    let verdict = sentinel.analyze_tool_call("nested_tool", &schema, &params).unwrap();
+    let verdict = sentinel
+        .analyze_tool_call("nested_tool", &schema, &params)
+        .unwrap();
 
     // Should handle nested structure
-    assert!(!verdict.is_blocked(),
-            "Deeply nested params should not cause blocking");
+    assert!(
+        !verdict.is_blocked(),
+        "Deeply nested params should not cause blocking"
+    );
 }
 
 #[test]
@@ -311,11 +329,7 @@ fn test_edge_special_characters_in_tool_name() {
     let mut sentinel = Sentinel::new(config).unwrap();
 
     // Tool names with special characters
-    let special_names = vec![
-        "tool-with-dashes",
-        "tool_with_underscores",
-        "tool123",
-    ];
+    let special_names = vec!["tool-with-dashes", "tool_with_underscores", "tool123"];
 
     for name in special_names {
         let schema = safe_tool(name);
@@ -324,8 +338,11 @@ fn test_edge_special_characters_in_tool_name() {
         let params = serde_json::json!({});
         let verdict = sentinel.analyze_tool_call(name, &schema, &params).unwrap();
 
-        assert!(!verdict.is_blocked(),
-                "Tool {} should be handled correctly", name);
+        assert!(
+            !verdict.is_blocked(),
+            "Tool {} should be handled correctly",
+            name
+        );
 
         if verdict.is_allowed() || verdict.requires_review() {
             sentinel.end_step("ok").unwrap();
@@ -353,11 +370,15 @@ fn test_recovery_after_blocked_request() {
     let params = serde_json::json!({});
 
     // First: blocked request
-    let verdict = sentinel.analyze_tool_call("bad_tool", &unregistered, &params).unwrap();
+    let verdict = sentinel
+        .analyze_tool_call("bad_tool", &unregistered, &params)
+        .unwrap();
     assert!(verdict.is_blocked());
 
     // Recovery: subsequent good request should work
-    let verdict = sentinel.analyze_tool_call("good_tool", &registered, &params).unwrap();
+    let verdict = sentinel
+        .analyze_tool_call("good_tool", &registered, &params)
+        .unwrap();
     assert!(verdict.is_allowed(), "Should recover after blocked request");
     sentinel.end_step("ok").unwrap();
 }
@@ -394,9 +415,15 @@ fn test_recovery_after_reset() {
     // Reset and verify full gas restored
     sentinel.reset_monitor();
 
-    assert!(sentinel.gas_remaining() > gas_before_reset,
-            "Gas should be restored after reset");
-    assert_eq!(sentinel.step_count(), 0, "Step count should be 0 after reset");
+    assert!(
+        sentinel.gas_remaining() > gas_before_reset,
+        "Gas should be restored after reset"
+    );
+    assert_eq!(
+        sentinel.step_count(),
+        0,
+        "Step count should be 0 after reset"
+    );
 }
 
 // =============================================================================
@@ -417,16 +444,23 @@ fn test_consistency_same_request_same_result() {
     let params = serde_json::json!({ "input": "test" });
 
     // Same request should give consistent result
-    let verdict1 = sentinel.analyze_tool_call("consistent_tool", &schema, &params).unwrap();
+    let verdict1 = sentinel
+        .analyze_tool_call("consistent_tool", &schema, &params)
+        .unwrap();
     sentinel.end_step("result1").unwrap();
 
     sentinel.reset_monitor();
 
-    let verdict2 = sentinel.analyze_tool_call("consistent_tool", &schema, &params).unwrap();
+    let verdict2 = sentinel
+        .analyze_tool_call("consistent_tool", &schema, &params)
+        .unwrap();
 
     // Both should have same verdict type
-    assert_eq!(verdict1.is_allowed(), verdict2.is_allowed(),
-               "Same request should give consistent result");
+    assert_eq!(
+        verdict1.is_allowed(),
+        verdict2.is_allowed(),
+        "Same request should give consistent result"
+    );
 }
 
 #[test]

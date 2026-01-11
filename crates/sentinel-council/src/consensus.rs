@@ -3,8 +3,8 @@
 //! Implements Byzantine fault-tolerant voting where 2/3 majority
 //! is required for action approval.
 
-use serde::{Deserialize, Serialize};
 use crate::evaluator::{Decision, EvaluatorVote};
+use serde::{Deserialize, Serialize};
 
 /// Result of a consensus vote.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

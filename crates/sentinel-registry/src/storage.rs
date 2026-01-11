@@ -121,7 +121,11 @@ impl Storage {
         let schemas = db.open_tree(SCHEMA_TREE)?;
         let hashes = db.open_tree(HASH_TREE)?;
 
-        Ok(Storage { db, schemas, hashes })
+        Ok(Storage {
+            db,
+            schemas,
+            hashes,
+        })
     }
 
     /// Creates a temporary in-memory storage for testing.
@@ -148,7 +152,11 @@ impl Storage {
         let schemas = db.open_tree(SCHEMA_TREE)?;
         let hashes = db.open_tree(HASH_TREE)?;
 
-        Ok(Storage { db, schemas, hashes })
+        Ok(Storage {
+            db,
+            schemas,
+            hashes,
+        })
     }
 
     /// Stores a tool schema and its hash.
@@ -301,8 +309,7 @@ impl Storage {
 
         for result in self.schemas.iter() {
             let (key, _) = result?;
-            let name = String::from_utf8(key.to_vec())
-                .map_err(|_| RegistryError::InvalidProof)?;
+            let name = String::from_utf8(key.to_vec()).map_err(|_| RegistryError::InvalidProof)?;
             tools.push(name);
         }
 

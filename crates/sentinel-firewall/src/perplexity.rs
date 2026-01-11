@@ -314,7 +314,11 @@ mod tests {
     fn test_entropy_two_chars_equal() {
         // Two chars with equal frequency = 1 bit
         let entropy = calculate_entropy("abababab");
-        assert!((entropy - 1.0).abs() < 0.01, "Expected ~1.0, got {}", entropy);
+        assert!(
+            (entropy - 1.0).abs() < 0.01,
+            "Expected ~1.0, got {}",
+            entropy
+        );
     }
 
     #[test]

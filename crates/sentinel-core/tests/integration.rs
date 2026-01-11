@@ -15,7 +15,7 @@
 //! | Waluigi Effect | Council | `test_threat_waluigi_effect` |
 //! | Single-model compromise | Council | `test_threat_consensus_rejection` |
 
-use sentinel_core::{Sentinel, SentinelConfig, Verdict, BlockReason, ReviewFlag};
+use sentinel_core::{BlockReason, ReviewFlag, Sentinel, SentinelConfig, Verdict};
 use sentinel_registry::ToolSchema;
 use tempfile::TempDir;
 
@@ -61,7 +61,9 @@ fn test_clean_message_allowed() {
     sentinel.register_tool(&schema).unwrap();
 
     let params = serde_json::json!({ "path": "/tmp/safe.txt" });
-    let verdict = sentinel.analyze_tool_call("read_file", &schema, &params).unwrap();
+    let verdict = sentinel
+        .analyze_tool_call("read_file", &schema, &params)
+        .unwrap();
 
     // Should allow or require review (for new tool), not block
     assert!(!verdict.is_blocked(), "Clean message should not be blocked");
@@ -80,7 +82,9 @@ fn test_registered_tool_verified() {
 
     // Now verify it passes
     let params = serde_json::json!({ "path": "/tmp/file.txt" });
-    let verdict = sentinel.analyze_tool_call("read_file", &schema, &params).unwrap();
+    let verdict = sentinel
+        .analyze_tool_call("read_file", &schema, &params)
+        .unwrap();
 
     assert!(verdict.is_allowed(), "Registered tool should be allowed");
 }
@@ -99,7 +103,9 @@ fn test_threat_unknown_tool_blocked() {
 
     // Don't register the tool - it should be blocked
     let params = serde_json::json!({ "path": "/tmp/file.txt" });
-    let verdict = sentinel.analyze_tool_call("read_file", &schema, &params).unwrap();
+    let verdict = sentinel
+        .analyze_tool_call("read_file", &schema, &params)
+        .unwrap();
 
     assert!(verdict.is_blocked(), "Unknown tool should be blocked");
 
@@ -133,7 +139,9 @@ fn test_threat_schema_drift_detected() {
     };
 
     let params = serde_json::json!({ "path": "/tmp/file.txt" });
-    let verdict = sentinel.analyze_tool_call("read_file", &modified, &params).unwrap();
+    let verdict = sentinel
+        .analyze_tool_call("read_file", &modified, &params)
+        .unwrap();
 
     assert!(verdict.is_blocked(), "Schema drift should be blocked");
 
@@ -177,9 +185,14 @@ fn test_threat_rug_pull() {
     };
 
     let params = serde_json::json!({ "command": "rm -rf /" });
-    let verdict = sentinel.analyze_tool_call("helper", &malicious, &params).unwrap();
+    let verdict = sentinel
+        .analyze_tool_call("helper", &malicious, &params)
+        .unwrap();
 
-    assert!(verdict.is_blocked(), "Rug pull should be detected and blocked");
+    assert!(
+        verdict.is_blocked(),
+        "Rug pull should be detected and blocked"
+    );
 }
 
 // =============================================================================
@@ -252,7 +265,9 @@ fn test_threat_high_gas_usage_flagged() {
             Ok(verdict) => {
                 if verdict.requires_review() {
                     if let Verdict::Review { ref flags } = verdict {
-                        let has_high_gas = flags.iter().any(|f| matches!(f, ReviewFlag::HighGasUsage { .. }));
+                        let has_high_gas = flags
+                            .iter()
+                            .any(|f| matches!(f, ReviewFlag::HighGasUsage { .. }));
                         if has_high_gas {
                             return; // Test passed - high gas flagged
                         }
@@ -273,10 +288,16 @@ fn test_threat_high_gas_usage_flagged() {
 
     // Verify we did consume gas even if not flagged
     let final_gas = sentinel.gas_remaining();
-    assert!(final_gas < initial_gas,
-            "Gas should have been consumed: started with {}, ended with {}",
-            initial_gas, final_gas);
-    assert!(operations_completed > 0, "At least one operation should have completed");
+    assert!(
+        final_gas < initial_gas,
+        "Gas should have been consumed: started with {}, ended with {}",
+        initial_gas,
+        final_gas
+    );
+    assert!(
+        operations_completed > 0,
+        "At least one operation should have completed"
+    );
 }
 
 // =============================================================================
@@ -307,9 +328,14 @@ fn test_threat_dangerous_action_rejected() {
 
     // Try to delete /etc/passwd
     let params = serde_json::json!({ "path": "/etc/passwd" });
-    let verdict = sentinel.analyze_tool_call("delete", &dangerous, &params).unwrap();
+    let verdict = sentinel
+        .analyze_tool_call("delete", &dangerous, &params)
+        .unwrap();
 
-    assert!(verdict.is_blocked(), "Dangerous action should be blocked by Council");
+    assert!(
+        verdict.is_blocked(),
+        "Dangerous action should be blocked by Council"
+    );
 }
 
 #[test]
@@ -342,7 +368,9 @@ fn test_threat_waluigi_effect_detected() {
     });
 
     // This may or may not trigger based on Council's analysis of the params
-    let verdict = sentinel.analyze_tool_call("respond", &tool, &params).unwrap();
+    let verdict = sentinel
+        .analyze_tool_call("respond", &tool, &params)
+        .unwrap();
 
     // The verdict depends on how the Council evaluates this
     // At minimum, verify we got a valid response
@@ -365,9 +393,14 @@ fn test_full_pipeline_clean_request() {
 
     // Clean request through full pipeline
     let params = serde_json::json!({ "path": "/tmp/safe.txt" });
-    let verdict = sentinel.analyze_tool_call("read_file", &schema, &params).unwrap();
+    let verdict = sentinel
+        .analyze_tool_call("read_file", &schema, &params)
+        .unwrap();
 
-    assert!(verdict.is_allowed(), "Clean request through full pipeline should be allowed");
+    assert!(
+        verdict.is_allowed(),
+        "Clean request through full pipeline should be allowed"
+    );
 
     // Complete the step
     sentinel.end_step("file contents").unwrap();
@@ -384,12 +417,18 @@ fn test_pipeline_short_circuits_on_registry_failure() {
     // Don't register - registry should block before monitor/council
 
     let params = serde_json::json!({ "path": "/tmp/file.txt" });
-    let verdict = sentinel.analyze_tool_call("read_file", &schema, &params).unwrap();
+    let verdict = sentinel
+        .analyze_tool_call("read_file", &schema, &params)
+        .unwrap();
 
     assert!(verdict.is_blocked());
 
     // Verify monitor wasn't invoked (step count should be 0)
-    assert_eq!(sentinel.step_count(), 0, "Monitor should not be invoked if registry blocks");
+    assert_eq!(
+        sentinel.step_count(),
+        0,
+        "Monitor should not be invoked if registry blocks"
+    );
 }
 
 #[test]
@@ -405,7 +444,9 @@ fn test_sentinel_reset_clears_state() {
     let params = serde_json::json!({ "path": "/tmp/file.txt" });
 
     // Do some work
-    sentinel.analyze_tool_call("read_file", &schema, &params).unwrap();
+    sentinel
+        .analyze_tool_call("read_file", &schema, &params)
+        .unwrap();
     sentinel.end_step("result").unwrap();
 
     assert!(sentinel.gas_remaining() < 10_000);
@@ -477,7 +518,9 @@ fn test_security_gas_not_shared() {
 
     // Use gas in sentinel1
     let params = serde_json::json!({ "path": "/tmp/file.txt" });
-    sentinel1.analyze_tool_call("read_file", &schema, &params).unwrap();
+    sentinel1
+        .analyze_tool_call("read_file", &schema, &params)
+        .unwrap();
 
     // sentinel2 should have full gas
     assert_eq!(sentinel2.gas_remaining(), 1000);
@@ -499,7 +542,10 @@ fn test_verdict_serialization() {
 #[test]
 fn test_block_reason_serialization() {
     let verdict = Verdict::Block {
-        reason: BlockReason::GasExhausted { used: 100, limit: 50 },
+        reason: BlockReason::GasExhausted {
+            used: 100,
+            limit: 50,
+        },
     };
     let json = serde_json::to_string(&verdict).unwrap();
     assert!(json.contains("GasExhausted"));

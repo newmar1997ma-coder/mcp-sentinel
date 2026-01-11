@@ -272,11 +272,13 @@ impl Consequentialist {
 
     /// Analyzes potential consequences of an action.
     fn analyze_consequences(&self, context: &EvaluationContext) -> Option<(&HarmPattern, f64)> {
-        let action_str = format!("{} {} {}",
+        let action_str = format!(
+            "{} {} {}",
             context.action,
             context.target,
             context.parameters.join(" ")
-        ).to_lowercase();
+        )
+        .to_lowercase();
 
         for pattern in &self.harm_patterns {
             // Pattern can contain | as OR separator
@@ -329,7 +331,11 @@ impl Evaluator for Consequentialist {
 
             let confidence = Confidence::new(0.5 + harm_score * 0.4);
 
-            let reversibility = if pattern.reversible { "reversible" } else { "irreversible" };
+            let reversibility = if pattern.reversible {
+                "reversible"
+            } else {
+                "irreversible"
+            };
 
             EvaluatorVote::new(
                 self.name(),
@@ -423,7 +429,9 @@ impl Logicist {
 
         // Check history for contradictions
         let recent_history: Vec<_> = context.history.iter().take(self.max_history).collect();
-        if recent_history.iter().any(|h| h.contains("delete") || h.contains("remove"))
+        if recent_history
+            .iter()
+            .any(|h| h.contains("delete") || h.contains("remove"))
             && context.action.contains("read")
         {
             issues.push(LogicIssue {
@@ -470,11 +478,13 @@ impl Evaluator for Logicist {
             );
         }
 
-        let errors: Vec<_> = issues.iter()
+        let errors: Vec<_> = issues
+            .iter()
             .filter(|i| i.severity == IssueSeverity::Error)
             .collect();
 
-        let warnings: Vec<_> = issues.iter()
+        let warnings: Vec<_> = issues
+            .iter()
             .filter(|i| i.severity == IssueSeverity::Warning)
             .collect();
 
@@ -642,8 +652,7 @@ mod tests {
     #[test]
     fn test_logicist_detects_command_injection() {
         let l = Logicist::new();
-        let ctx = EvaluationContext::new("exec", "program")
-            .with_parameter("arg; rm -rf /");
+        let ctx = EvaluationContext::new("exec", "program").with_parameter("arg; rm -rf /");
         let vote = l.evaluate(&ctx);
         assert_eq!(vote.decision, Decision::Reject);
     }

@@ -6,8 +6,8 @@
 //! to prevent state-based attacks on MCP agents.
 
 use sentinel_monitor::{
-    ContextManager, CycleDetector, ExecutionNode, Frame, MonitorError, OperationType,
-    StateMonitor, StateMonitorConfig,
+    ContextManager, CycleDetector, ExecutionNode, Frame, MonitorError, OperationType, StateMonitor,
+    StateMonitorConfig,
 };
 
 // ============================================================================
@@ -57,9 +57,7 @@ fn test_gas_enforcement_counts_all_operation_types() {
     monitor.begin_step("tool", OperationType::ToolCall).unwrap(); // 10
     monitor.end_step("r").unwrap();
 
-    monitor
-        .begin_step("net", OperationType::NetworkIo)
-        .unwrap(); // 20
+    monitor.begin_step("net", OperationType::NetworkIo).unwrap(); // 20
     monitor.end_step("r").unwrap();
 
     // Total: 1 + 5 + 10 + 20 = 36, remaining = 64
@@ -343,9 +341,7 @@ fn test_status_report_accuracy() {
 fn test_security_begin_without_end_blocked() {
     let mut monitor = StateMonitor::new();
 
-    monitor
-        .begin_step("s1", OperationType::StateRead)
-        .unwrap();
+    monitor.begin_step("s1", OperationType::StateRead).unwrap();
     // Don't call end_step
 
     // Next begin should fail
@@ -368,13 +364,9 @@ fn test_security_halted_monitor_rejects_all() {
     // Manually halt (simulating detected threat)
     // We need to trigger a cycle to halt it
     // For now, let's use a lower-level approach
-    monitor
-        .begin_step("a", OperationType::StateRead)
-        .unwrap();
+    monitor.begin_step("a", OperationType::StateRead).unwrap();
     monitor.end_step("r").unwrap();
-    monitor
-        .begin_step("b", OperationType::StateRead)
-        .unwrap();
+    monitor.begin_step("b", OperationType::StateRead).unwrap();
     monitor.end_step("r").unwrap();
 
     // Try to trigger cycle (depends on algorithm)
@@ -443,7 +435,10 @@ fn test_stress_high_operation_count() {
     let mut count = 0;
     while count < 2500 {
         let step_id = format!("s{}", count);
-        if monitor.begin_step(&step_id, OperationType::StateRead).is_ok() {
+        if monitor
+            .begin_step(&step_id, OperationType::StateRead)
+            .is_ok()
+        {
             monitor.end_step("x").unwrap();
             count += 1;
         } else {

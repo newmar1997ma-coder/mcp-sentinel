@@ -200,7 +200,10 @@ fn compare_schemas(old: &Value, new: &Value, context: &str) -> Vec<(String, Drif
 
     if old_type != new_type {
         changes.push((
-            format!("{} schema type changed: '{}' -> '{}'", context, old_type, new_type),
+            format!(
+                "{} schema type changed: '{}' -> '{}'",
+                context, old_type, new_type
+            ),
             DriftLevel::Critical,
         ));
         return changes; // Type change is fundamental, don't compare further
@@ -296,10 +299,7 @@ fn compare_schemas(old: &Value, new: &Value, context: &str) -> Vec<(String, Drif
 
     // If we haven't detected specific changes but schemas differ, report generic change
     if changes.is_empty() {
-        changes.push((
-            format!("{} schema modified", context),
-            DriftLevel::Minor,
-        ));
+        changes.push((format!("{} schema modified", context), DriftLevel::Minor));
     }
 
     changes
@@ -319,11 +319,7 @@ fn get_properties(schema: &Value) -> std::collections::HashMap<String, Value> {
     schema
         .get("properties")
         .and_then(|p| p.as_object())
-        .map(|obj| {
-            obj.iter()
-                .map(|(k, v)| (k.clone(), v.clone()))
-                .collect()
-        })
+        .map(|obj| obj.iter().map(|(k, v)| (k.clone(), v.clone())).collect())
         .unwrap_or_default()
 }
 
