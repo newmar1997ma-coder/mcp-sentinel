@@ -763,7 +763,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "capacity must be at least 1")]
     fn test_zero_capacity_panics() {
-        ContextManager::new(0);
+        let _ = ContextManager::new(0);
     }
 
     #[test]

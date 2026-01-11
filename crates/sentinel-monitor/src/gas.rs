@@ -250,7 +250,7 @@ impl GasBudget {
     ///
     /// # Security Notes
     ///
-    /// Use this for pre-flight checks. Always follow with [`consume`]
+    /// Use this for pre-flight checks. Always follow with `consume()`
     /// for actual execution to ensure atomicity.
     #[inline]
     #[must_use]
