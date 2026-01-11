@@ -9,7 +9,7 @@ repository = "https://github.com/pixelmarmalade/mcp-sentinel"
 keywords = ["security", "mcp", "prompt-injection", "ai-safety"]
 
 [dependencies]
-sentinel-core = { path = "../sentinel-core" }
+# Note: sentinel-core depends on this crate, not the other way around
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 sha2 = "0.10"

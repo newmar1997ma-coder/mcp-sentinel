@@ -4,10 +4,7 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-sentinel-core = { path = "../sentinel-core" }
-sentinel-firewall = { path = "../sentinel-firewall" }
-sentinel-registry = { path = "../sentinel-registry" }
-sentinel-monitor = { path = "../sentinel-monitor" }
+# Note: sentinel-core depends on this crate, not the other way around
 tokio.workspace = true
 serde.workspace = true
 tracing.workspace = true

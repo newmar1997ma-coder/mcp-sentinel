@@ -2,6 +2,7 @@
 name = "sentinel-core"
 version.workspace = true
 edition.workspace = true
+description = "Unified security facade for MCP Sentinel"
 
 [dependencies]
 tokio.workspace = true
@@ -9,3 +10,11 @@ serde.workspace = true
 serde_json.workspace = true
 tracing.workspace = true
 thiserror.workspace = true
+
+# Sentinel component crates
+sentinel-registry = { path = "../sentinel-registry" }
+sentinel-monitor = { path = "../sentinel-monitor" }
+sentinel-council = { path = "../sentinel-council" }
+
+[dev-dependencies]
+tempfile = "3"

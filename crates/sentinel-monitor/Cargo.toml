@@ -4,7 +4,7 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-sentinel-core = { path = "../sentinel-core" }
+# Note: sentinel-core depends on this crate, not the other way around
 tokio.workspace = true
 serde.workspace = true
 thiserror.workspace = true
