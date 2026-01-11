@@ -1,11 +1,16 @@
 [package]
 name = "sentinel-registry"
-version.workspace = true
-edition.workspace = true
+version = "0.1.0"
+edition = "2021"
+authors = ["Kevin Haltiwanger <kevin@pixelmarmalade.com>"]
+description = "Registry Guard - Merkle tree schema verification and drift detection"
+license = "MIT"
+repository = "https://github.com/pixelmarmalade/mcp-sentinel"
+keywords = ["security", "mcp", "merkle-tree", "schema-verification"]
 
 [dependencies]
-sentinel-core = { path = "../sentinel-core" }
-tokio.workspace = true
-serde.workspace = true
-serde_json.workspace = true
-tracing.workspace = true
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sha2 = "0.10"
+thiserror = "1.0"
+sled = "0.34"
