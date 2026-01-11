@@ -1,0 +1,21 @@
+[package]
+name = "sentinel-cli"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "sentinel"
+path = "src/main.rs"
+
+[dependencies]
+sentinel-core = { path = "../sentinel-core" }
+sentinel-firewall = { path = "../sentinel-firewall" }
+sentinel-registry = { path = "../sentinel-registry" }
+sentinel-monitor = { path = "../sentinel-monitor" }
+sentinel-council = { path = "../sentinel-council" }
+tokio.workspace = true
+serde.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+anyhow.workspace = true
+clap = { version = "4", features = ["derive"] }

@@ -1,0 +1,11 @@
+[package]
+name = "sentinel-monitor"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+sentinel-core = { path = "../sentinel-core" }
+tokio.workspace = true
+serde.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true

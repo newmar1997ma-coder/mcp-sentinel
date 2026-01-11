@@ -1,0 +1,25 @@
+# Rust
+/target/
+Cargo.lock
+
+# Go
+proxy/mcp-sentinel-proxy
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Config secrets
+config/*.secret.toml
+*.pem
+*.key
+
+# Test artifacts
+tests/attack_vectors/*.log
+tests/benchmarks/results/

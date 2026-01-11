@@ -1,0 +1,32 @@
+# MCP Sentinel Configuration Example
+
+[sentinel]
+name = "sentinel-01"
+mode = "enforce"  # enforce | monitor | permissive
+
+[proxy]
+listen = "127.0.0.1:8080"
+protocol = "stdio"  # stdio | http | websocket
+
+[firewall]
+default_action = "deny"
+
+[[firewall.rules]]
+name = "allow-read-tools"
+tools = ["read_file", "list_directory"]
+action = "allow"
+
+[[firewall.rules]]
+name = "block-dangerous"
+tools = ["execute_command", "write_file"]
+action = "escalate"
+
+[monitor]
+log_level = "info"
+audit_path = "/var/log/sentinel/audit.log"
+anomaly_detection = true
+
+[council]
+enabled = false
+quorum = 2
+escalation_timeout = "30s"

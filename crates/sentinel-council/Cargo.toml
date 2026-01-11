@@ -1,0 +1,13 @@
+[package]
+name = "sentinel-council"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+sentinel-core = { path = "../sentinel-core" }
+sentinel-firewall = { path = "../sentinel-firewall" }
+sentinel-registry = { path = "../sentinel-registry" }
+sentinel-monitor = { path = "../sentinel-monitor" }
+tokio.workspace = true
+serde.workspace = true
+tracing.workspace = true
