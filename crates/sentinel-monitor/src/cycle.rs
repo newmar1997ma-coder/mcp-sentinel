@@ -282,7 +282,7 @@ impl CycleDetector {
     pub fn detect_cycle_floyd(&self) -> Option<Cycle> {
         // For state-based cycle detection, we check if any state_id
         // appears more than once in the path
-        for (_state_id, occurrences) in &self.state_occurrences {
+        for occurrences in self.state_occurrences.values() {
             if occurrences.len() >= 2 {
                 // Found a repeated state - this is a cycle
                 let first_occurrence = occurrences[0];
@@ -364,90 +364,79 @@ impl CycleDetector {
             adjacency.entry(from).or_default().push(to);
         }
 
-        // Tarjan's SCC algorithm
-        let mut index_counter = 0u64;
-        let mut stack: Vec<&str> = Vec::new();
-        let mut on_stack: HashMap<&str, bool> = HashMap::new();
-        let mut indices: HashMap<&str, u64> = HashMap::new();
-        let mut lowlinks: HashMap<&str, u64> = HashMap::new();
-        let mut sccs: Vec<Vec<&str>> = Vec::new();
+        // Tarjan's SCC algorithm using a state struct to avoid too many parameters
+        struct TarjanState<'a> {
+            adjacency: HashMap<&'a str, Vec<&'a str>>,
+            index_counter: u64,
+            stack: Vec<&'a str>,
+            on_stack: HashMap<&'a str, bool>,
+            indices: HashMap<&'a str, u64>,
+            lowlinks: HashMap<&'a str, u64>,
+            sccs: Vec<Vec<&'a str>>,
+        }
 
-        fn strongconnect<'a>(
-            node: &'a str,
-            adjacency: &HashMap<&'a str, Vec<&'a str>>,
-            index_counter: &mut u64,
-            stack: &mut Vec<&'a str>,
-            on_stack: &mut HashMap<&'a str, bool>,
-            indices: &mut HashMap<&'a str, u64>,
-            lowlinks: &mut HashMap<&'a str, u64>,
-            sccs: &mut Vec<Vec<&'a str>>,
-        ) {
-            indices.insert(node, *index_counter);
-            lowlinks.insert(node, *index_counter);
-            *index_counter += 1;
-            stack.push(node);
-            on_stack.insert(node, true);
+        impl<'a> TarjanState<'a> {
+            fn strongconnect(&mut self, node: &'a str) {
+                self.indices.insert(node, self.index_counter);
+                self.lowlinks.insert(node, self.index_counter);
+                self.index_counter += 1;
+                self.stack.push(node);
+                self.on_stack.insert(node, true);
 
-            if let Some(neighbors) = adjacency.get(node) {
-                for &neighbor in neighbors {
-                    if !indices.contains_key(neighbor) {
-                        strongconnect(
-                            neighbor,
-                            adjacency,
-                            index_counter,
-                            stack,
-                            on_stack,
-                            indices,
-                            lowlinks,
-                            sccs,
-                        );
-                        let neighbor_lowlink = *lowlinks.get(neighbor).unwrap();
-                        let node_lowlink = lowlinks.get_mut(node).unwrap();
-                        *node_lowlink = (*node_lowlink).min(neighbor_lowlink);
-                    } else if *on_stack.get(neighbor).unwrap_or(&false) {
-                        let neighbor_index = *indices.get(neighbor).unwrap();
-                        let node_lowlink = lowlinks.get_mut(node).unwrap();
-                        *node_lowlink = (*node_lowlink).min(neighbor_index);
+                if let Some(neighbors) = self.adjacency.get(node) {
+                    let neighbors = neighbors.clone();
+                    for neighbor in neighbors {
+                        if !self.indices.contains_key(neighbor) {
+                            self.strongconnect(neighbor);
+                            let neighbor_lowlink = *self.lowlinks.get(neighbor).unwrap();
+                            let node_lowlink = self.lowlinks.get_mut(node).unwrap();
+                            *node_lowlink = (*node_lowlink).min(neighbor_lowlink);
+                        } else if *self.on_stack.get(neighbor).unwrap_or(&false) {
+                            let neighbor_index = *self.indices.get(neighbor).unwrap();
+                            let node_lowlink = self.lowlinks.get_mut(node).unwrap();
+                            *node_lowlink = (*node_lowlink).min(neighbor_index);
+                        }
                     }
                 }
-            }
 
-            // If node is root of SCC
-            if lowlinks.get(node) == indices.get(node) {
-                let mut scc = Vec::new();
-                loop {
-                    let w = stack.pop().unwrap();
-                    on_stack.insert(w, false);
-                    scc.push(w);
-                    if w == node {
-                        break;
+                // If node is root of SCC
+                if self.lowlinks.get(node) == self.indices.get(node) {
+                    let mut scc = Vec::new();
+                    loop {
+                        let w = self.stack.pop().unwrap();
+                        self.on_stack.insert(w, false);
+                        scc.push(w);
+                        if w == node {
+                            break;
+                        }
                     }
-                }
-                if scc.len() > 1 {
-                    sccs.push(scc);
+                    if scc.len() > 1 {
+                        self.sccs.push(scc);
+                    }
                 }
             }
         }
 
+        let mut state = TarjanState {
+            adjacency,
+            index_counter: 0,
+            stack: Vec::new(),
+            on_stack: HashMap::new(),
+            indices: HashMap::new(),
+            lowlinks: HashMap::new(),
+            sccs: Vec::new(),
+        };
+
         // Run Tarjan on all nodes
         let nodes: Vec<&str> = self.path.iter().map(|n| n.state_id()).collect();
-        for &node in &nodes {
-            if !indices.contains_key(node) {
-                strongconnect(
-                    node,
-                    &adjacency,
-                    &mut index_counter,
-                    &mut stack,
-                    &mut on_stack,
-                    &mut indices,
-                    &mut lowlinks,
-                    &mut sccs,
-                );
+        for node in nodes {
+            if !state.indices.contains_key(node) {
+                state.strongconnect(node);
             }
         }
 
         // If we found any SCC with > 1 node, that's a cycle
-        if let Some(scc) = sccs.first() {
+        if let Some(scc) = state.sccs.first() {
             let cycle_nodes: Vec<ExecutionNode> = self
                 .path
                 .iter()
