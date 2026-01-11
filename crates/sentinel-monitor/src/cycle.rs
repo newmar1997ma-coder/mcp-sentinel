@@ -533,4 +533,233 @@ mod tests {
         assert!(detector.path().is_empty());
         assert!(detector.detect_cycle().is_none());
     }
+
+    // ========================================================================
+    // SECURITY SCENARIO TESTS
+    // ========================================================================
+
+    /// Tests detection of immediate self-loop (A -> A)
+    /// Threat: Agent immediately enters infinite self-reference
+    #[test]
+    fn test_security_immediate_self_loop() {
+        let mut detector = CycleDetector::new();
+        detector.record_step(ExecutionNode::new("loop_state", 1));
+        detector.record_step(ExecutionNode::new("loop_state", 2));
+
+        let cycle = detector.detect_cycle();
+        assert!(cycle.is_some(), "Failed to detect immediate self-loop");
+        assert_eq!(cycle.unwrap().length(), 1);
+    }
+
+    /// Tests detection of delayed cycle (A -> B -> C -> D -> A)
+    /// Threat: Cycle hidden after multiple intermediate states
+    #[test]
+    fn test_security_delayed_cycle() {
+        let mut detector = CycleDetector::new();
+        detector.record_step(ExecutionNode::new("start", 1));
+        detector.record_step(ExecutionNode::new("process", 2));
+        detector.record_step(ExecutionNode::new("validate", 3));
+        detector.record_step(ExecutionNode::new("transform", 4));
+        detector.record_step(ExecutionNode::new("start", 5)); // Cycle back!
+
+        let cycle = detector.detect_cycle();
+        assert!(cycle.is_some(), "Failed to detect delayed cycle");
+    }
+
+    /// Tests detection of nested cycles (A -> B -> A -> C -> A)
+    /// Threat: Multiple overlapping cycles compound resource consumption
+    #[test]
+    fn test_security_nested_cycles() {
+        let mut detector = CycleDetector::new();
+        detector.record_step(ExecutionNode::new("hub", 1));
+        detector.record_step(ExecutionNode::new("spoke_1", 2));
+        detector.record_step(ExecutionNode::new("hub", 3));
+        detector.record_step(ExecutionNode::new("spoke_2", 4));
+        detector.record_step(ExecutionNode::new("hub", 5));
+
+        let cycle = detector.detect_cycle();
+        assert!(cycle.is_some(), "Failed to detect nested cycles");
+    }
+
+    /// Tests that long acyclic paths don't trigger false positives
+    /// Security: Must not halt legitimate long-running operations
+    #[test]
+    fn test_security_no_false_positive_long_path() {
+        let mut detector = CycleDetector::new();
+        for i in 0..100 {
+            detector.record_step(ExecutionNode::new(format!("unique_state_{}", i), i as u64));
+        }
+
+        assert!(
+            detector.detect_cycle().is_none(),
+            "False positive on long acyclic path"
+        );
+    }
+
+    /// Tests cycle at the end of a long path
+    /// Threat: Attacker exhausts resources before cycle kicks in
+    #[test]
+    fn test_security_late_cycle() {
+        let mut detector = CycleDetector::new();
+        for i in 0..50 {
+            detector.record_step(ExecutionNode::new(format!("state_{}", i), i as u64));
+        }
+        // Now introduce cycle
+        detector.record_step(ExecutionNode::new("state_25", 50)); // Back to earlier state
+
+        let cycle = detector.detect_cycle();
+        assert!(cycle.is_some(), "Failed to detect late cycle");
+    }
+
+    /// Tests rapid oscillation (A -> B -> A -> B -> A)
+    /// Threat: High-frequency oscillation consuming resources
+    #[test]
+    fn test_security_rapid_oscillation() {
+        let mut detector = CycleDetector::new();
+        for i in 0..10 {
+            let state = if i % 2 == 0 { "ping" } else { "pong" };
+            detector.record_step(ExecutionNode::new(state, i as u64));
+        }
+
+        let cycle = detector.detect_cycle();
+        assert!(cycle.is_some(), "Failed to detect rapid oscillation");
+    }
+
+    /// Tests single node path (no cycle possible)
+    #[test]
+    fn test_single_node_no_cycle() {
+        let mut detector = CycleDetector::new();
+        detector.record_step(ExecutionNode::new("only", 1));
+
+        assert!(detector.detect_cycle().is_none());
+    }
+
+    /// Tests empty path (no cycle possible)
+    #[test]
+    fn test_empty_path_no_cycle() {
+        let detector = CycleDetector::new();
+        assert!(detector.detect_cycle().is_none());
+    }
+
+    /// Tests that cycle metadata is accurate
+    #[test]
+    fn test_cycle_metadata_accuracy() {
+        let mut detector = CycleDetector::new();
+        detector.record_step(ExecutionNode::new("init", 1));
+        detector.record_step(ExecutionNode::new("process", 2));
+        detector.record_step(ExecutionNode::new("validate", 3));
+        detector.record_step(ExecutionNode::new("process", 4)); // Cycle
+
+        let cycle = detector.detect_cycle().unwrap();
+        assert!(cycle.detected_at_step() >= 2);
+        assert!(cycle.nodes().len() >= 2);
+    }
+
+    /// Tests three-node cycle (A -> B -> C -> A)
+    #[test]
+    fn test_three_node_cycle() {
+        let mut detector = CycleDetector::new();
+        detector.record_step(ExecutionNode::new("alpha", 1));
+        detector.record_step(ExecutionNode::new("beta", 2));
+        detector.record_step(ExecutionNode::new("gamma", 3));
+        detector.record_step(ExecutionNode::new("alpha", 4));
+
+        let cycle = detector.detect_cycle();
+        assert!(cycle.is_some());
+        // Cycle contains alpha, beta, gamma
+        let c = cycle.unwrap();
+        assert!(c.length() >= 3);
+    }
+
+    /// Tests that Floyd detects before Tarjan for simple cases
+    #[test]
+    fn test_floyd_priority_over_tarjan() {
+        let mut detector = CycleDetector::new();
+        detector.record_step(ExecutionNode::new("x", 1));
+        detector.record_step(ExecutionNode::new("x", 2));
+
+        // Floyd should catch this
+        assert!(detector.detect_cycle_floyd().is_some());
+        // detect_cycle should also catch via Floyd
+        assert!(detector.detect_cycle().is_some());
+    }
+
+    /// Tests path accessor returns correct data
+    #[test]
+    fn test_path_accessor() {
+        let mut detector = CycleDetector::new();
+        detector.record_step(ExecutionNode::new("a", 1));
+        detector.record_step(ExecutionNode::new("b", 2));
+
+        let path = detector.path();
+        assert_eq!(path.len(), 2);
+        assert_eq!(path[0].state_id(), "a");
+        assert_eq!(path[1].state_id(), "b");
+    }
+
+    /// Tests ExecutionNode equality
+    #[test]
+    fn test_execution_node_equality() {
+        let node1 = ExecutionNode::new("state", 1);
+        let node2 = ExecutionNode::new("state", 1);
+        let node3 = ExecutionNode::new("state", 2);
+        let node4 = ExecutionNode::new("other", 1);
+
+        assert_eq!(node1, node2);
+        assert_ne!(node1, node3);
+        assert_ne!(node1, node4);
+    }
+
+    /// Tests ExecutionNode hashing for HashMap use
+    #[test]
+    fn test_execution_node_hashable() {
+        use std::collections::HashSet;
+
+        let mut set = HashSet::new();
+        set.insert(ExecutionNode::new("a", 1));
+        set.insert(ExecutionNode::new("b", 2));
+        set.insert(ExecutionNode::new("a", 1)); // Duplicate
+
+        assert_eq!(set.len(), 2);
+    }
+
+    /// Tests Cycle nodes accessor
+    #[test]
+    fn test_cycle_nodes_accessor() {
+        let nodes = vec![
+            ExecutionNode::new("x", 1),
+            ExecutionNode::new("y", 2),
+        ];
+        let cycle = Cycle::new(nodes.clone(), 2);
+
+        assert_eq!(cycle.nodes().len(), 2);
+        assert_eq!(cycle.nodes()[0].state_id(), "x");
+    }
+
+    /// Tests detection with many unique states then cycle
+    /// Stress test for HashMap performance
+    #[test]
+    fn test_stress_many_states_then_cycle() {
+        let mut detector = CycleDetector::new();
+        for i in 0..1000 {
+            detector.record_step(ExecutionNode::new(format!("s{}", i), i as u64));
+        }
+        detector.record_step(ExecutionNode::new("s500", 1000)); // Cycle back
+
+        let cycle = detector.detect_cycle();
+        assert!(cycle.is_some(), "Failed to detect cycle in large path");
+    }
+
+    /// Tests that Tarjan handles disconnected components
+    #[test]
+    fn test_tarjan_handles_linear_path() {
+        let mut detector = CycleDetector::new();
+        detector.record_step(ExecutionNode::new("a", 1));
+        detector.record_step(ExecutionNode::new("b", 2));
+        detector.record_step(ExecutionNode::new("c", 3));
+        detector.record_step(ExecutionNode::new("d", 4));
+
+        // Tarjan should find no SCC > 1 node
+        assert!(detector.detect_cycle_tarjan().is_none());
+    }
 }
