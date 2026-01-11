@@ -1,25 +1,43 @@
-//! # Cycle Detection
+//! # State Monitor
 //!
-//! Detects and prevents infinite loops in MCP agent execution paths.
-//!
-//! This module implements two complementary cycle detection algorithms:
-//! - **Floyd's tortoise-and-hare**: O(n) detection of simple cycles
-//! - **Tarjan's SCC algorithm**: O(V+E) detection of complex/nested cycles
+//! Complete state monitoring: cycle detection + gas budgeting +
+//! context flush. Prevents state-based attacks on MCP agents.
 //!
 //! ## Threat Model
 //!
-//! MCP agents execute sequences of operations that can form cycles:
-//! - **Infinite loops**: Agent enters repeating state sequence, never terminating
-//! - **Resource exhaustion**: Unbounded loops consume memory/CPU
-//! - **Undetected compromise**: Malicious input crafts cycles to bypass security
+//! MCP agents face multiple state-based attack vectors:
+//! - **Context explosion** (flush strategy: LRU eviction)
+//! - **Gas bypass** (budget tracking per operation)
+//! - **Undetected cycles** (Floyd + Tarjan integration)
 //!
-//! ## Detection Strategy
+//! ## Components
 //!
-//! 1. Each agent step produces an [`ExecutionNode`] representing current state
-//! 2. Nodes are tracked in execution path
-//! 3. Floyd's algorithm detects simple A→B→A cycles in O(n) time
-//! 4. Tarjan's algorithm detects complex strongly connected components
-//! 5. On cycle detection, execution halts before damage occurs
+//! | Component | Purpose |
+//! |-----------|---------|
+//! | [`StateMonitor`] | Unified facade integrating all protections |
+//! | [`CycleDetector`] | Floyd + Tarjan cycle detection |
+//! | [`GasBudget`] | Computational resource limits |
+//! | [`ContextManager`] | LRU-based memory management |
+//!
+//! ## Quick Start
+//!
+//! ```rust
+//! use sentinel_monitor::{StateMonitor, OperationType};
+//!
+//! let mut monitor = StateMonitor::new();
+//!
+//! // Before each agent operation:
+//! monitor.begin_step("read_file", OperationType::ToolCall)?;
+//!
+//! // ... execute the operation ...
+//!
+//! // After successful operation:
+//! monitor.end_step("file contents")?;
+//!
+//! // Check status
+//! assert!(monitor.gas_remaining() > 0);
+//! # Ok::<(), sentinel_monitor::MonitorError>(())
+//! ```
 //!
 //! ## References
 //!
@@ -27,37 +45,23 @@
 //!   *Journal of the ACM*, 14(4), 636-644.
 //! - Tarjan, R. E. (1972). "Depth-first search and linear graph algorithms"
 //!   *SIAM Journal on Computing*, 1(2), 146-160.
-//!
-//! ## Example
-//!
-//! ```rust
-//! use sentinel_monitor::{CycleDetector, ExecutionNode};
-//!
-//! let mut detector = CycleDetector::new();
-//!
-//! // Simulate agent execution steps
-//! detector.record_step(ExecutionNode::new("state_a", 1));
-//! detector.record_step(ExecutionNode::new("state_b", 2));
-//! detector.record_step(ExecutionNode::new("state_a", 3)); // Potential cycle!
-//!
-//! if let Some(cycle) = detector.detect_cycle() {
-//!     eprintln!("Cycle detected: {:?}", cycle);
-//!     // Halt execution immediately
-//! }
-//! ```
+//! - Ethereum Yellow Paper, Section 9: Execution Model (gas semantics)
 //!
 //! ## Security Notes
 //!
-//! - Cycle detection MUST be called before each agent step
-//! - Detection is conservative: false positives preferred over missed cycles
-//! - All detected cycles are logged for forensic analysis
+//! - All checks execute BEFORE the guarded operation
+//! - Any failed check MUST halt execution immediately
+//! - Monitoring state is append-only during execution
+//! - Reset operations are privileged (new execution context only)
 
 mod cycle;
 mod error;
 mod flush;
 mod gas;
+mod monitor;
 
 pub use cycle::{Cycle, CycleDetector, ExecutionNode};
 pub use error::{MonitorError, Result};
 pub use flush::{ContextManager, Frame};
 pub use gas::{GasBudget, OperationType};
+pub use monitor::{MonitorStatus, StateMonitor, StateMonitorConfig};
