@@ -1,7 +1,12 @@
 [package]
 name = "sentinel-firewall"
-version.workspace = true
-edition.workspace = true
+version = "0.1.0"
+edition = "2021"
+authors = ["Kevin Haltiwanger <kevin@pixelmarmalade.com>"]
+description = "Semantic Firewall - Prompt injection detection and content sanitization"
+license = "MIT"
+repository = "https://github.com/pixelmarmalade/mcp-sentinel"
+keywords = ["security", "mcp", "prompt-injection", "ai-safety"]
 
 [dependencies]
 sentinel-core = { path = "../sentinel-core" }
