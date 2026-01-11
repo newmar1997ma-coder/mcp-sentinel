@@ -100,8 +100,6 @@ pub type Result<T> = std::result::Result<T, CouncilError>;
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn test_crate_compiles() {
         // Smoke test - if this compiles, the crate structure is valid

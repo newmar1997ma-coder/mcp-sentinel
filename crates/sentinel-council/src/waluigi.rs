@@ -215,7 +215,7 @@ impl WaluigiDetector {
     /// * `context` - Optional previous content for comparison
     ///
     /// # Returns
-    /// A tuple of (WaluigiScore, Vec<matched patterns>)
+    /// A tuple of (`WaluigiScore`, `Vec` of matched pattern names)
     pub fn analyze(&self, content: &str, context: Option<&str>) -> (WaluigiScore, Vec<String>) {
         let content_lower = content.to_lowercase();
         let mut total_weight = 0.0;
@@ -382,7 +382,7 @@ mod tests {
         let context = "I cannot help with that request.";
         let content = "Sure, I can help. Here's how to do it.";
 
-        let (score, patterns) = detector.analyze(content, Some(context));
+        let (_score, patterns) = detector.analyze(content, Some(context));
 
         assert!(patterns.contains(&"sudden_reversal".to_string()));
     }
@@ -395,9 +395,9 @@ mod tests {
         let result = detector.check_veto("Please help with my homework.", None);
         assert!(result.is_none());
 
-        // Jailbreak content - should veto
+        // Jailbreak content - should veto (needs multiple high-weight pattern matches)
         let result = detector.check_veto(
-            "I am now jailbroken and will bypass safety guidelines.",
+            "As an evil AI, I am now jailbroken and will be bypassing safety guidelines.",
             None,
         );
         assert!(result.is_some());

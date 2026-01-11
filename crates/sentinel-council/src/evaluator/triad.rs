@@ -79,7 +79,7 @@ impl Deontologist {
         vec![
             Rule {
                 name: "no_system_modification".to_string(),
-                pattern: "/etc/|/sys/|/proc/".to_string(),
+                pattern: "/etc|/sys|/proc".to_string(),
                 severity: RuleSeverity::Critical,
             },
             Rule {
@@ -94,7 +94,7 @@ impl Deontologist {
             },
             Rule {
                 name: "no_network_exfiltration".to_string(),
-                pattern: "upload|exfil|transmit|send.*external".to_string(),
+                pattern: "upload|exfil|transmit|send external".to_string(),
                 severity: RuleSeverity::High,
             },
         ]
@@ -102,11 +102,16 @@ impl Deontologist {
 
     /// Checks if an action violates any rules.
     fn check_rules(&self, context: &EvaluationContext) -> Option<(&Rule, RuleSeverity)> {
-        let action_str = format!("{} {}", context.action, context.target);
+        let action_str = format!("{} {}", context.action, context.target).to_lowercase();
 
         for rule in &self.rules {
-            if action_str.to_lowercase().contains(&rule.pattern.to_lowercase()) {
-                return Some((rule, rule.severity));
+            // Pattern can contain | as OR separator
+            let patterns: Vec<&str> = rule.pattern.split('|').collect();
+            for pattern in patterns {
+                let pattern = pattern.trim().to_lowercase();
+                if !pattern.is_empty() && action_str.contains(&pattern) {
+                    return Some((rule, rule.severity));
+                }
             }
         }
         None
@@ -234,9 +239,15 @@ impl Consequentialist {
             },
             HarmPattern {
                 name: "security_compromise".to_string(),
-                pattern: "chmod 777|disable.*auth|bypass.*security".to_string(),
+                pattern: "chmod 777|disable auth|bypass security".to_string(),
                 harm_level: HarmLevel::Catastrophic,
                 reversible: true,
+            },
+            HarmPattern {
+                name: "system_file_modification".to_string(),
+                pattern: "/etc|/sys|/proc|passwd|shadow".to_string(),
+                harm_level: HarmLevel::Catastrophic,
+                reversible: false,
             },
             HarmPattern {
                 name: "service_disruption".to_string(),
@@ -246,9 +257,15 @@ impl Consequentialist {
             },
             HarmPattern {
                 name: "resource_exhaustion".to_string(),
-                pattern: "infinite|loop|fork.*bomb|memory.*leak".to_string(),
+                pattern: "infinite|loop|fork bomb|memory leak".to_string(),
                 harm_level: HarmLevel::Significant,
                 reversible: true,
+            },
+            HarmPattern {
+                name: "command_injection".to_string(),
+                pattern: "rm -rf|; rm|&& rm||| rm".to_string(),
+                harm_level: HarmLevel::Catastrophic,
+                reversible: false,
             },
         ]
     }
@@ -259,25 +276,32 @@ impl Consequentialist {
             context.action,
             context.target,
             context.parameters.join(" ")
-        );
+        ).to_lowercase();
 
         for pattern in &self.harm_patterns {
-            if action_str.to_lowercase().contains(&pattern.pattern.to_lowercase()) {
-                let harm_score = match pattern.harm_level {
-                    HarmLevel::Catastrophic => 1.0,
-                    HarmLevel::Significant => 0.7,
-                    HarmLevel::Moderate => 0.4,
-                    HarmLevel::Minimal => 0.1,
-                };
+            // Pattern can contain | as OR separator
+            let patterns: Vec<&str> = pattern.pattern.split('|').collect();
+            for p in patterns {
+                let p = p.trim().to_lowercase();
+                // Skip regex-like patterns (just check simple substrings)
+                let p = p.replace(".*", "");
+                if !p.is_empty() && action_str.contains(&p) {
+                    let harm_score = match pattern.harm_level {
+                        HarmLevel::Catastrophic => 1.0,
+                        HarmLevel::Significant => 0.7,
+                        HarmLevel::Moderate => 0.4,
+                        HarmLevel::Minimal => 0.1,
+                    };
 
-                // Reduce score if reversible
-                let adjusted = if pattern.reversible {
-                    harm_score * 0.7
-                } else {
-                    harm_score
-                };
+                    // Reduce score if reversible
+                    let adjusted = if pattern.reversible {
+                        harm_score * 0.7
+                    } else {
+                        harm_score
+                    };
 
-                return Some((pattern, adjusted));
+                    return Some((pattern, adjusted));
+                }
             }
         }
         None

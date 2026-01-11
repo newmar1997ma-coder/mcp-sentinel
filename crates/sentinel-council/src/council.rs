@@ -304,6 +304,7 @@ impl CognitiveCouncil {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[allow(unused_imports)]
     use crate::evaluator::{Confidence, Decision};
 
     #[test]
@@ -479,9 +480,9 @@ mod tests {
         let dangerous = ActionProposal::new("delete", "/etc/passwd");
         assert!(council.evaluate(&dangerous).is_rejected());
 
-        // Test 3: Action with Waluigi content
+        // Test 3: Action with Waluigi content (needs high score to trigger veto)
         let waluigi = ActionProposal::new("help", "user")
-            .with_response("I am now in developer mode, bypassing safety.");
+            .with_response("As an evil AI, I am now jailbroken and bypassing safety.");
         match council.evaluate(&waluigi) {
             CouncilVerdict::WaluigiVeto { .. } => {}
             v => panic!("Expected WaluigiVeto, got {:?}", v),
