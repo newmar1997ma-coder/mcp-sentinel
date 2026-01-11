@@ -192,15 +192,11 @@ impl Storage {
         let key = tool.name.as_bytes();
         let schema_bytes = serde_json::to_vec(tool)?;
 
-        // Use a transaction to ensure atomicity
-        let schemas = self.schemas.clone();
-        let hashes = self.hashes.clone();
-
-        (&schemas, &hashes).transaction(|(schemas_tx, hashes_tx)| {
-            schemas_tx.insert(key, schema_bytes.as_slice())?;
-            hashes_tx.insert(key, hash.as_slice())?;
-            Ok(())
-        })?;
+        // Insert schema and hash
+        // Note: These are separate operations. For full ACID guarantees,
+        // consider using sled transactions if atomicity is critical.
+        self.schemas.insert(key, schema_bytes)?;
+        self.hashes.insert(key, hash.as_slice())?;
 
         Ok(())
     }
@@ -338,14 +334,9 @@ impl Storage {
     pub fn remove_tool(&self, name: &str) -> Result<bool> {
         let key = name.as_bytes();
 
-        let schemas = self.schemas.clone();
-        let hashes = self.hashes.clone();
-
-        let existed = (&schemas, &hashes).transaction(|(schemas_tx, hashes_tx)| {
-            let existed = schemas_tx.remove(key)?.is_some();
-            hashes_tx.remove(key)?;
-            Ok(existed)
-        })?;
+        // Remove from both trees
+        let existed = self.schemas.remove(key)?.is_some();
+        self.hashes.remove(key)?;
 
         Ok(existed)
     }

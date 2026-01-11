@@ -48,7 +48,7 @@
 use crate::canonicalize::hash_tool_schema;
 use crate::drift::{detect_drift, new_tool_report};
 use crate::merkle::MerkleTree;
-use crate::models::{DriftReport, Hash, MerkleProof, RegistryError, Result, ToolSchema, VerifyResult};
+use crate::models::{DriftReport, Hash, MerkleProof, Result, ToolSchema, VerifyResult};
 use crate::storage::Storage;
 use std::path::Path;
 

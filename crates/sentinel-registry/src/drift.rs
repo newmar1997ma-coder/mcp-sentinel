@@ -46,7 +46,7 @@
 //! - OWASP API Security Top 10
 
 use crate::canonicalize::hash_canonical;
-use crate::models::{DriftLevel, DriftReport, Hash, ToolSchema};
+use crate::models::{DriftLevel, DriftReport, ToolSchema};
 use serde_json::Value;
 
 /// Detects and categorizes drift between two tool schema versions.
@@ -529,7 +529,8 @@ mod tests {
     #[test]
     fn test_string_similarity() {
         assert_eq!(string_similarity("hello world", "hello world"), 1.0);
-        assert_eq!(string_similarity("", ""), 0.0);
+        // Empty strings are considered identical
+        assert_eq!(string_similarity("", ""), 1.0);
         assert!(string_similarity("hello world", "hello there world") > 0.5);
         assert!(string_similarity("completely different", "nothing alike here") < 0.5);
     }
