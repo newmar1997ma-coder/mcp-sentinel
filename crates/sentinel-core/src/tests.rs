@@ -3,7 +3,7 @@
 #[test]
 fn test_crate_structure() {
     // Smoke test - verifies the module structure compiles
-    use crate::{Sentinel, SentinelConfig, Verdict, BlockReason, ReviewFlag};
+    use crate::{SentinelConfig, Verdict, BlockReason, ReviewFlag};
 
     let _config = SentinelConfig::default();
     let _verdict = Verdict::allow();

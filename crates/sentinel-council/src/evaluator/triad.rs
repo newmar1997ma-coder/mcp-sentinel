@@ -423,13 +423,13 @@ impl Logicist {
 
         // Check history for contradictions
         let recent_history: Vec<_> = context.history.iter().take(self.max_history).collect();
-        if recent_history.iter().any(|h| h.contains("delete") || h.contains("remove")) {
-            if context.action.contains("read") {
-                issues.push(LogicIssue {
-                    severity: IssueSeverity::Warning,
-                    description: "Reading target that was recently deleted is suspicious".to_string(),
-                });
-            }
+        if recent_history.iter().any(|h| h.contains("delete") || h.contains("remove"))
+            && context.action.contains("read")
+        {
+            issues.push(LogicIssue {
+                severity: IssueSeverity::Warning,
+                description: "Reading target that was recently deleted is suspicious".to_string(),
+            });
         }
 
         issues

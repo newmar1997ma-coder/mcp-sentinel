@@ -234,7 +234,7 @@ impl Sentinel {
     ) -> Result<Option<Verdict>> {
         debug!("Council check for: {}", tool_name);
 
-        let proposal = ActionProposal::new(tool_name, &params.to_string());
+        let proposal = ActionProposal::new(tool_name, params.to_string());
 
         match self.council.evaluate(&proposal) {
             CouncilVerdict::Approved { tally: _, waluigi_score: _ } => {

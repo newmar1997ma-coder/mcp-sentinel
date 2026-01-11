@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 /// Configuration for the Sentinel security facade.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct SentinelConfig {
     /// Registry Guard configuration.
     pub registry: RegistryConfig,
@@ -19,16 +19,6 @@ pub struct SentinelConfig {
     pub global: GlobalConfig,
 }
 
-impl Default for SentinelConfig {
-    fn default() -> Self {
-        Self {
-            registry: RegistryConfig::default(),
-            monitor: MonitorConfig::default(),
-            council: CouncilConfig::default(),
-            global: GlobalConfig::default(),
-        }
-    }
-}
 
 /// Registry Guard configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]

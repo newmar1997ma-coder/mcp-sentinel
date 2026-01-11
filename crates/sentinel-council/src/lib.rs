@@ -103,6 +103,6 @@ mod tests {
     #[test]
     fn test_crate_compiles() {
         // Smoke test - if this compiles, the crate structure is valid
-        assert!(true);
+        let _ = std::hint::black_box(1);
     }
 }

@@ -251,7 +251,7 @@ impl MerkleTree {
     /// }
     /// ```
     pub fn get_proof(&mut self, key: &str) -> Option<MerkleProof> {
-        let leaf_hash = self.leaves.get(key)?.clone();
+        let leaf_hash = *self.leaves.get(key)?;
         let root_hash = self.get_root();
 
         // Get sorted keys for consistent ordering
@@ -373,7 +373,7 @@ impl MerkleTree {
 
         while current_level.len() > 1 {
             // Find sibling
-            let sibling_index = if index % 2 == 0 {
+            let sibling_index = if index.is_multiple_of(2) {
                 index + 1
             } else {
                 index - 1
@@ -454,7 +454,7 @@ mod tests {
         tree.insert("tool", hash);
 
         assert_eq!(tree.len(), 1);
-        assert_eq!(tree.get(&"tool"), Some(&hash));
+        assert_eq!(tree.get("tool"), Some(&hash));
         // Single leaf: root is the leaf itself
         assert_eq!(tree.get_root(), hash);
     }

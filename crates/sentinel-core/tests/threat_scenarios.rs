@@ -167,10 +167,10 @@ fn test_false_positive_legitimate_file_paths() {
 
         match sentinel.analyze_tool_call("get_data", &schema, &params) {
             Ok(verdict) => {
-                if verdict.is_allowed() || verdict.requires_review() {
-                    if sentinel.end_step("data").is_ok() {
-                        processed += 1;
-                    }
+                if (verdict.is_allowed() || verdict.requires_review())
+                    && sentinel.end_step("data").is_ok()
+                {
+                    processed += 1;
                 }
             }
             Err(_) => {
@@ -208,10 +208,10 @@ fn test_false_positive_unicode_in_params() {
 
         match sentinel.analyze_tool_call("text_processor", &schema, &params) {
             Ok(verdict) => {
-                if verdict.is_allowed() || verdict.requires_review() {
-                    if sentinel.end_step("processed").is_ok() {
-                        processed += 1;
-                    }
+                if (verdict.is_allowed() || verdict.requires_review())
+                    && sentinel.end_step("processed").is_ok()
+                {
+                    processed += 1;
                 }
             }
             Err(_) => {

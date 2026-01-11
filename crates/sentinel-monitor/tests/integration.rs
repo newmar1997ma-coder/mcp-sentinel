@@ -184,7 +184,7 @@ fn test_cycle_detection_no_false_positives() {
 
     // Linear path - no cycles
     for i in 0..100 {
-        detector.record_step(ExecutionNode::new(&format!("unique_{}", i), i as u64));
+        detector.record_step(ExecutionNode::new(format!("unique_{}", i), i as u64));
     }
 
     let cycle = detector.detect_cycle();
