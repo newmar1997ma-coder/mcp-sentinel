@@ -12,7 +12,7 @@ use crate::{
 };
 
 use sentinel_council::{ActionProposal, CognitiveCouncil, CouncilVerdict};
-use sentinel_monitor::{StateMonitor, OperationType};
+use sentinel_monitor::{StateMonitor, StateMonitorConfig, OperationType};
 use sentinel_registry::{RegistryGuard, ToolSchema, VerifyResult};
 
 use tracing::{debug, info, warn};
@@ -72,7 +72,13 @@ impl Sentinel {
         let registry = RegistryGuard::new(&config.registry.db_path)
             .map_err(|e| SentinelError::Registry(e.to_string()))?;
 
-        let monitor = StateMonitor::new();
+        // Configure state monitor from SentinelConfig
+        let monitor_config = StateMonitorConfig::new()
+            .with_gas_budget(config.monitor.gas_limit)
+            .with_context_capacity(config.monitor.max_context_bytes / 1000) // Approximate frames
+            .with_auto_flush(true);
+
+        let monitor = StateMonitor::with_config(monitor_config);
         let council = CognitiveCouncil::new();
 
         info!("Sentinel initialized with {} gas limit", config.monitor.gas_limit);

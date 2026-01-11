@@ -79,7 +79,7 @@ pub use sentinel::Sentinel;
 
 // Re-export component types for convenience
 pub use sentinel_registry::{RegistryGuard, ToolSchema, VerifyResult, DriftLevel};
-pub use sentinel_monitor::{StateMonitor, MonitorStatus, OperationType};
+pub use sentinel_monitor::{StateMonitor, StateMonitorConfig, MonitorStatus, OperationType};
 pub use sentinel_council::{CognitiveCouncil, CouncilVerdict, ActionProposal};
 
 /// Core result type for sentinel operations.
