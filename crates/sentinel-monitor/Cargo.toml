@@ -7,5 +7,6 @@ edition.workspace = true
 sentinel-core = { path = "../sentinel-core" }
 tokio.workspace = true
 serde.workspace = true
+thiserror.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
