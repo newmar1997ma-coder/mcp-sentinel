@@ -43,11 +43,11 @@ func main() {
 	switch *mode {
 	case "stdio":
 		log.Println("Starting stdio transport...")
-		// TODO: Initialize StdioTransport and Router
+		// Future: Initialize StdioTransport and Router
 		log.Println("Proxy ready - reading from stdin")
 	case "sse":
 		log.Printf("Starting SSE transport on port %d...", *port)
-		// TODO: Initialize SSETransport and Router
+		// Future: Initialize SSETransport and Router
 		log.Printf("Proxy ready - listening on :%d", *port)
 	default:
 		log.Fatalf("Unknown transport mode: %s", *mode)

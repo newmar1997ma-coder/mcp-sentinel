@@ -295,7 +295,7 @@ pub fn sanitize_json(input: &str) -> Result<String, SanitizeError> {
 /// Currently returns `Err(UnsupportedType)`.
 /// Future: `Ok(clean_image_bytes)`
 pub fn sanitize_image(_data: &[u8]) -> Result<Vec<u8>, SanitizeError> {
-    // TODO: Implement image sanitization
+    // Future: Image sanitization (see module docs)
     // Planned approach:
     //
     // 1. Detect format (PNG, JPEG, GIF, WebP)
@@ -337,7 +337,7 @@ pub fn sanitize_image(_data: &[u8]) -> Result<Vec<u8>, SanitizeError> {
 /// - PDF security issues: <https://www.adobe.com/devnet-docs/acrobatetk/tools/AppSec/index.html>
 /// - PDF/A for archival: Consider converting to PDF/A for maximum safety
 pub fn sanitize_pdf(_data: &[u8]) -> Result<Vec<u8>, SanitizeError> {
-    // TODO: Implement PDF sanitization
+    // Future: PDF sanitization (see module docs)
     // Planned approach:
     //
     // 1. Parse PDF structure with pdf crate
