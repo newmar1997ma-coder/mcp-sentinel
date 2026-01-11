@@ -54,8 +54,10 @@
 
 mod cycle;
 mod error;
+mod flush;
 mod gas;
 
 pub use cycle::{Cycle, CycleDetector, ExecutionNode};
 pub use error::{MonitorError, Result};
+pub use flush::{ContextManager, Frame};
 pub use gas::{GasBudget, OperationType};
